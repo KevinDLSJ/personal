@@ -8,7 +8,9 @@ function mas(req,res){
                 if(err){
                     res.json(err);
                 }
-                res.render('pages/detalle_agrega',{deta, folio:folio});
+                conn.query('SELECT sum(cantidad*precio) AS subtotal FROM detalle WHERE folio = ?',[folio],(err,subtotal)=>{
+                    res.render('pages/detalle_agrega', {deta, folio:folio,subtotal})
+                })
             })
         })
     })
@@ -26,7 +28,9 @@ function menos(req,res){
                     if(err){
                         res.json(err);
                     }
-                    res.render('pages/detalle_agrega',{deta, folio:folio});
+                    conn.query('SELECT sum(cantidad*precio) AS subtotal FROM detalle WHERE folio = ?',[folio],(err,subtotal)=>{
+                        res.render('pages/detalle_agrega', {deta, folio:folio,subtotal})
+                    })
                 })
             })
         }else{
@@ -35,7 +39,9 @@ function menos(req,res){
                     if(err){
                         res.json(err);
                     }
-                    res.render('pages/detalle_agrega',{deta, folio:folio});
+                    conn.query('SELECT sum(cantidad*precio) AS subtotal FROM detalle WHERE folio = ?',[folio],(err,subtotal)=>{
+                        res.render('pages/detalle_agrega', {deta, folio:folio,subtotal})
+                    })
                 })
             }) 
         }

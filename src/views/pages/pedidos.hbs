@@ -34,10 +34,10 @@
           
           {{#each pedi}}
           <tr>
-            <td class="fs-3" id="folio">{{folio}}</td>
+            <td class="fs-3" id="folio" name="folio">{{folio}}</td>
             <td class="fs-3">{{tip_status}}</td>
             <td>
-              <form class="mx-2" action="/detalle_agrega" method="post">
+              <form class="mx-2" action="/detalle" method="post">
                 <input type="hidden" value="{{folio}}" name="folio" id="folio">
                 <button class="btn btn-dark h-10 mt-1" type="submit">
                   <h5>Detalle del Pedido</h5>

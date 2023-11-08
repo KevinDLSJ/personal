@@ -1,3 +1,5 @@
+const { query } = require("express");
+
 function pedido(req, res) {
   req.getConnection((err, conn) => {
     conn.query('SELECT b.folio,b.fecha,d.tip_status,b.id_status FROM pedido b JOIN status d ON b.id_status=d.id_status WHERE b.id_status=1', (err, pedi) => {
@@ -52,13 +54,22 @@ function detalle(req, res) {
   const datos=req.body;
   //console.log("------folio-----",datos);
   req.getConnection((err, conn) => {
-    conn.query('SELECT b.folio, b.id_status , c.name, a.cantidad, a.precio FROM pedido, a.id_producto b JOIN detalle a ON a.folio = b.folio JOIN product c ON a.id_producto = c.id_producto where b.folio = ?',[datos.folio], (err, deta) => {
+    conn.query('SELECT b.folio, b.id_status , c.name, a.cantidad, a.precio, a.id_producto FROM pedido b JOIN detalle a ON a.folio = b.folio JOIN product c ON a.id_producto = c.id_producto where b.folio = ?',[datos.folio], (err, deta) => {
       if(err) {
         res.json(err);
       }
-      //console.log("----detalles----", deta);
-      var stat = deta[0].id_status;
-      res.render('pages/detalle', {deta});
+      let stat = deta[0].id_status;
+      if (stat = 1){
+        stat = 'Terminado';
+      } 
+      if (stat = 3){
+        stat = 'Entregado';
+      }
+      conn.query('SELECT sum(cantidad*precio) AS subtotal FROM detalle WHERE folio = ?',[datos.folio],(err,subtotal)=>{
+        //console.log(subtotal);
+        res.render('pages/detalle', {deta, folio:datos.folio, status: stat, subtotal});
+      })
+      
     })
   })
 }
@@ -71,8 +82,10 @@ function detalle_e(req, res) {
       if(err) {
         res.json(err);
       }
-      //console.log("----detalles----", deta);
-      res.render('pages/detalle_e', {deta, folio:datos.folio});
+      conn.query('SELECT sum(cantidad*precio) AS subtotal FROM detalle WHERE folio = ?',[datos.folio],(err,subtotal)=>{
+        //console.log(subtotal);
+        res.render('pages/detalle_e', {deta, folio:datos.folio, subtotal});
+      })
     })
   })
 }
@@ -85,17 +98,22 @@ function detalle_agr(req, res) {
       if(err) {
         res.json(err);
       }
-      //console.log("----detalles----", deta);
-      res.render('pages/detalle_agrega', {deta, folio:datos.folio});
+      conn.query('SELECT sum(cantidad*precio) AS subtotal FROM detalle WHERE folio = ?',[datos.folio],(err,subtotal)=>{
+        //console.log(subtotal);
+        res.render('pages/detalle_agrega', {deta, folio:datos.folio, subtotal});
+      })
     })
   })
 }
 
 function marca (req, res) {
   const data = req.body;
-  //console.log("Folio:",data.folio);
+  const folio = req.body.folio;
+  
+  //console.log(folio);
+  
   req.getConnection((err, conn) =>{
-    conn.query('UPDATE pedido SET id_status=id_status+1 where folio = ? ',[data.folio[0]], (err, pers) => {
+    conn.query('UPDATE pedido SET id_status=id_status+1 where folio = ? ',[data.folio], (err, pers) => {
       if(err) {
         res.json(err);
       }

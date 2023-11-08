@@ -20,41 +20,50 @@ function buscar(req, res){
 
 function indexp(req, res) {
     const folio = req.body.folio;
-    console.log(folio[0]);
     req.getConnection((err, conn) => {
-      conn.query('SELECT a.name,a.precio,a.id_producto,a.costo, b.folio from product a join pedido b ON b.folio=? ORDER BY `name` ASC',[folio[0]],(err, pers) => {
-        
-        console.log("Productos: ",pers)
-        res.render('pages/agregar', { pers, folio:folio[0]});
-      });
-    });
+        conn.query('SELECT a.costo,a.unidad,a.id_producto,a.name,b.descripcion,a.precio,c.description,a.imagen,d.folio FROM product a,articulo b,units c JOIN pedido d ON d.folio = ? WHERE a.tipo_art = b.tipo_art AND a.unidad = c.unidad ORDER BY `name` ASC',[folio], (err, pers) => {
+            res.render('pages/agregar',{pers});
+        });
+      }); 
 }
 
 function agrega(req,res) {
-    const data = req.body;
-    //console.log('body', data);
-    req.getConnection((err, conn) => {
-        conn.query('select id_producto, precio, name from product where id_producto=?',[data.id_producto],(err,prod) => {
-            //console.log('info producto',prod);
-            conn.query('select cantidad from detalle where id_producto=? and folio=?',[data.id_producto,data.folio],(err,rows)=>{
-                if(rows.length > 0){
-                    const cant = rows[0].cantidad + 1;
-                    conn.query('update detalle set cantidad = ? where id_producto=? and folio=?',[cant, data.id_producto, data.folio],(err,agr)=>{
-                        if(err){
-                            res.json(err);
+    const id_producto = req.body.id_producto;    
+    const folio = req.body.folio;
+    req.getConnection((err,conn)=>{
+        conn.query('select * from detalle where id_producto = ? and folio = ?',[id_producto,folio],(err,row)=>{
+            //console.log(row);
+            let rows = Object.keys(row).length;
+            console.log(rows);
+            if(rows > 0){
+                const cant = row[0].cantidad + 1;
+                conn.query('update detalle set cantidad=? where id_producto = ? and folio = ?',[cant,id_producto,folio],(err,det)=>{
+                    conn.query('SELECT b.folio, b.id_status , c.name, a.cantidad, a.precio, a.id_producto FROM pedido b JOIN detalle a ON a.folio = b.folio JOIN product c ON a.id_producto = c.id_producto where b.folio = ?',[folio], (err, deta) => {
+                        if(err) {
+                          res.json(err);
                         }
-                    })
-                }else{
-                    conn.query('INSERT INTO detalle (folio ,cantidad, id_producto, precio, name) values (?, ?, ?, ?, ?)',[data.folio, 1,prod[0].id_producto, prod[0].precio, prod[0].name],(err,agr)=>{
-                        if(err){
-                            res.json(err);
-                        }
-                    })
-                }
-                conn.query('SELECT b.folio, b.id_status , c.name, a.cantidad, a.precio FROM pedido b JOIN detalle a ON a.folio = b.folio JOIN product c ON a.id_producto = c.id_producto where b.folio = ?',[data.folio], (err, deta) =>{
-                    res.render('pages/detalle_agrega',{deta, folio: data.folio});
+                        conn.query('SELECT sum(cantidad*precio) AS subtotal FROM detalle WHERE folio = ?',[folio],(err,subtotal)=>{
+                          //console.log(subtotal);
+                          res.render('pages/detalle_agrega', {deta, folio:folio, subtotal});
+                        })
+                      })
                 })
-            })
+            } else {
+                conn.query('select precio,name from product where id_producto = ?',[id_producto],(err,prod)=>{
+                    let precio = prod[0];
+                    let name = prod[1];
+                    console.log(prod,precio,name);
+                    conn.query('insert into detalle set folio=?,id_producto=?,precio=?,cantidad=1,name=?',[folio,id_producto,precio,name],(err,insert)=>{
+                        if (err) throw err;
+                        conn.query('SELECT b.folio, b.id_status , c.name, a.cantidad, a.precio, a.id_producto FROM pedido b JOIN detalle a ON a.folio = b.folio JOIN product c ON a.id_producto = c.id_producto where b.folio = ?',[folio], (err, deta) => {
+                            conn.query('SELECT sum(cantidad*precio) AS subtotal FROM detalle WHERE folio = ?',[folio],(err,subtotal)=>{
+                              //console.log(subtotal);
+                              res.render('pages/detalle_agrega', {deta, folio:folio, subtotal});
+                            })
+                          })
+                    })
+                })
+            }
         })
     })
 }

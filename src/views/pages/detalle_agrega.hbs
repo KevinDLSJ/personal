@@ -87,20 +87,26 @@
                     </div><br>
                         
                         <hr>
-                    {{/each}}                
+                    {{/each}}  
+
+                    {{#each subtotal}}
+                    <div class="text-right h3">
+                        Subtotal:  {{subtotal}}
+                    </div>             
+                    {{/each}}              
                     
                 </div>  
                 <form action="/productos" class="mx-2" method="post">
-                    {{#each deta}}
+                    {{#if folio}}
                     <input type="hidden" name="folio" id="folio" value="{{folio}}">
-                    {{/each}}
+                    {{/if}}
                     <button class="btn btn-dark  fs-5 w-100 mt-2 " type="submit"> Agregar Producto </button>
                 </form>
                 <form action="/pedidos/marcar" class="mx-2" method="post">
-                    {{#each deta}}
+                    {{#if folio}}
                     <input type="hidden" name="folio" id="folio" value="{{folio}}">
-                    {{/each}}
-                    <button class="btn btn-success  fs-5 w-100 mt-2 " type="submit"> Marcar </button>
+                    {{/if}}
+                    <button class="btn btn-success  fs-5 w-100 mt-2 " type="submit"> Confirmar Pago </button>
                 </form>
             </div>
         </div>

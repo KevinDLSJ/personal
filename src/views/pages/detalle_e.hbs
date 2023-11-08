@@ -53,12 +53,18 @@
                             <h4 class="text-start">{{name}}</h4>
                         </div>
                         
-                    <div class="precio">
-                        <h4 class="text-end fs-3">Precio c/u: {{precio}}</h4>
-                    </div>
+                        <div class="precio">
+                            <h4 class="text-end fs-3">Precio c/u: {{precio}}</h4>
+                        </div>
                         
                         <hr>
-                    {{/each}}                
+                    {{/each}} 
+
+                    {{#each subtotal}}
+                    <div class="text-right h3">
+                        Subtotal:  {{subtotal}}
+                    </div>             
+                    {{/each}}               
                     <br><br>
                 </div>  
             </div>
